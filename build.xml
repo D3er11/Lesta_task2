@@ -1,0 +1,83 @@
+<project name="ClientArchive" default="create_archives">
+
+  <property name="archive_client.dir" value="archive_client" />
+  <property name="pyarchive.dir" value="pyarchive" />
+  <property name="archive_client.name" value="archive_client.zip" />
+  <property name="pyarchive.name" value="py_archive.zip" />
+  <property name="archive_client.path" value="${archive_client.dir}/${archive_client.name}" />
+  <property name="pyarchive.path" value="${pyarchive.dir}/${pyarchive.name}" />
+  <property name="debug.build" value="false" />
+  <property name="compress.level" value="6" />
+
+  <property name="debug.helper.file" value="common/scripts/DebugHelper.py" />
+  <property name="variable.name" value="DEBUG_MODE" />
+  <property name="new.value" value="True" />
+
+  <target name="create_archive_and_delete_folders">
+    <delete dir="${archive_client.dir}" />
+    <mkdir dir="${archive_client.dir}" />
+    <copy todir="${archive_client.dir}/client">
+      <fileset dir="client">
+        <include name="**/**" />
+        <exclude name="scripts/logic/debug/**" if="${debug.build}" />
+      </fileset>
+    </copy>
+    <copy todir="${archive_client.dir}/server">
+      <fileset dir="server">
+        <include name="scripts/logic/**" />
+        <exclude name="scripts/logic/debug/**" if="${debug.build}" />
+      </fileset>
+    </copy>
+    <copy todir="${archive_client.dir}/common">
+      <fileset dir="common">
+        <include name="scripts/logic/**" />
+        <include name="scripts/DebugHelper.py" />
+        <exclude name="scripts/logic/debug/**" if="${debug.build}" />
+      </fileset>
+    </copy>
+    <replaceregexp file="${archive_client.dir}/${debug.helper.file}" match="(^${variable.name}=).*" replace="\1${new.value}" />
+    <zip destfile="${archive_client.path}" level="${compress.level}">
+      <fileset dir="${archive_client.dir}">
+        <include name="client/**" />
+        <include name="server/**" />
+        <include name="common/**" />
+      </fileset>
+    </zip>
+  </target>
+
+  <target name="create_archive_without_pyc">
+    <delete dir="${pyarchive.dir}" />
+    <mkdir dir="${pyarchive.dir}" />
+    <copy todir="${pyarchive.dir}/client">
+      <fileset dir="client">
+        <include name="**/*.py" />
+        <exclude name="**/*.pyc" />
+        <exclude name="**/*.pyco" />
+      </fileset>
+    </copy>
+    <copy todir="${pyarchive.dir}/server">
+      <fileset dir="server">
+        <include name="**/*.py" />
+        <exclude name="**/*.pyc" />
+        <exclude name="**/*.pyco" />
+      </fileset>
+    </copy>
+    <copy todir="${pyarchive.dir}/common">
+      <fileset dir="common">
+        <include name="**/*.py" />
+        <exclude name="**/*.pyc" />
+        <exclude name="**/*.pyco" />
+      </fileset>
+    </copy>
+    <zip destfile="${pyarchive.path}" level="${compress.level}">
+      <fileset dir="${pyarchive.dir}">
+        <include name="client/**" />
+        <include name="server/**" />
+        <include name="common/**" />
+      </fileset>
+    </zip>
+  </target>
+
+  <target name="create_archives" depends="create_archive_and_delete_folders, create_archive_without_pyc" />
+
+</project>
